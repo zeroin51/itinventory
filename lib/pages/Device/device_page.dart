@@ -1,19 +1,19 @@
-import 'package:itinventory/pages/inventory_detail_page.dart';
+import 'package:itinventory/pages/device/device_detail_page.dart';
 import 'package:flutter/material.dart';
-import '/services/inventory_service.dart'; // Import service CRUD
-import '/models/inventory_item_model.dart'; // Import model InventoryItem
-import 'add_inventory_page.dart'; // Halaman untuk tambah data
+import '/services/device_service.dart'; // Import service CRUD
+import '/models/device_item_model.dart'; // Import model DeviceItem
+import 'add_device_page.dart'; // Halaman untuk tambah data
 
 
-class InventoryPage extends StatefulWidget {
+class DevicePage extends StatefulWidget {
   @override
-  _InventoryPageState createState() => _InventoryPageState();
+  _DevicePageState createState() => _DevicePageState();
 }
 
-class _InventoryPageState extends State<InventoryPage> {
+class _DevicePageState extends State<DevicePage> {
   TextEditingController _searchController = TextEditingController();
-  List<InventoryItem> _allItems = [];
-  List<InventoryItem> _filteredItems = [];
+  List<DeviceItem> _allItems = [];
+  List<DeviceItem> _filteredItems = [];
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _InventoryPageState extends State<InventoryPage> {
             icon: Icon(Icons.add),
             onPressed: () {
               // Aksi untuk menambahkan item baru
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AddInventoryPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AddDevicePage()));
             },
           ),
         ],
@@ -70,8 +70,8 @@ class _InventoryPageState extends State<InventoryPage> {
           ),
         ),
       ),
-      body: StreamBuilder<List<InventoryItem>>(
-        stream: getInventoryItems(),
+      body: StreamBuilder<List<DeviceItem>>(
+        stream: getDeviceItems(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -88,7 +88,7 @@ class _InventoryPageState extends State<InventoryPage> {
           return ListView.builder(
             itemCount: _filteredItems.length,
             itemBuilder: (context, index) {
-              InventoryItem item = _filteredItems[index];
+              DeviceItem item = _filteredItems[index];
               return ListTile(
                 title: Text(item.noasset),
                 subtitle: Text(item.type),
@@ -96,7 +96,7 @@ class _InventoryPageState extends State<InventoryPage> {
                   // Aksi untuk edit item
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => InventoryDetailPage(item: item))
+                    MaterialPageRoute(builder: (context) => DeviceDetailPage(item: item))
                   );
                 },
               );

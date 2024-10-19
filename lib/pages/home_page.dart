@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'inventory_page.dart'; // Import halaman InventoryPage
+import 'Device/device_page.dart';
+import 'Software/software_page.dart';
 import 'download_page.dart'; // Import halaman DownloadPage
 
 class HomePage extends StatelessWidget {
@@ -19,12 +20,25 @@ class HomePage extends StatelessWidget {
             // Tombol ke InventoryPage
             _buildSquareButton(
               context,
-              icon: Icons.inventory, // Ikon Inventory
-              label: 'Inventory',
+              icon: Icons.computer, // Ikon Device
+              label: 'Device',
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => InventoryPage()),
+                  MaterialPageRoute(builder: (context) => DevicePage()),
+                );
+              },
+            ),
+
+            // Tombol ke SoftwarePage
+            _buildSquareButton(
+              context,
+              icon: Icons.adobe, // Ikon Software
+              label: 'Software',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SoftwarePage()),
                 );
               },
             ),

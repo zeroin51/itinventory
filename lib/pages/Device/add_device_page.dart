@@ -2,51 +2,37 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
-import '../models/inventory_item_model.dart';
-import '../services/inventory_service.dart';
+import '/models/device_item_model.dart';
+import '/services/device_service.dart';
 
-class EditInventoryPage extends StatefulWidget {
-  final InventoryItem item;
-
-  EditInventoryPage({required this.item});
-
+class AddDevicePage extends StatefulWidget {
   @override
-  _EditInventoryPageState createState() => _EditInventoryPageState();
+  _AddDevicePageState createState() => _AddDevicePageState();
 }
 
-class _EditInventoryPageState extends State<EditInventoryPage> {
+class _AddDevicePageState extends State<AddDevicePage> {
   final _formKey = GlobalKey<FormState>();
-  late String noasset;
-  late String noserial;
-  late String type;
-  late String details;
-  late String imageUrl;
+  String noasset = '';
+  String noserial = '';
+  String type = 'Komputer';
+  String details = '';
 
   final firebase_storage.FirebaseStorage storage =
       firebase_storage.FirebaseStorage.instance;
   final firebase_storage.Reference _storageRef =
-      firebase_storage.FirebaseStorage.instance.ref('inventory_images');
+      firebase_storage.FirebaseStorage.instance.ref('images');
 
-  Uint8List? _imageBytes;
-
-  @override
-  void initState() {
-    super.initState();
-    noasset = widget.item.noasset;
-    noserial = widget.item.noserial;
-    type = widget.item.type;
-    details = widget.item.details;
-    imageUrl = widget.item.imageUrl;
-  }
+  Uint8List? _imageBytes; // Untuk menyimpan byte array gambar
+  String imageUrl = ''; // URL gambar yang diunggah
 
   Future<void> _uploadImage() async {
     try {
-      if (_imageBytes != null) {
-        // Gunakan nilai noasset sebagai bagian dari nama file
+      if (_imageBytes != null && noasset.isNotEmpty) {
+        // Menggunakan nilai noasset dan timestamp untuk nama file
         final DateTime now = DateTime.now();
         final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
-        final String fileName = '${noasset}_$formattedDate'; // Gabungan noasset dan waktu sekarang
-        
+        final String fileName = '${noasset}_$formattedDate'; // Gabungan noasset dan timestamp
+
         final imageRef = _storageRef.child('$fileName.png');
         final uploadTask = imageRef.putData(_imageBytes!);
 
@@ -75,7 +61,7 @@ class _EditInventoryPageState extends State<EditInventoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit Inventory Item')),
+      appBar: AppBar(title: Text('Tambah Item Device')),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -103,21 +89,11 @@ class _EditInventoryPageState extends State<EditInventoryPage> {
                                 fit: BoxFit.cover,
                               ),
                             )
-                          : (imageUrl.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(100),
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: 200,
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.camera_alt,
-                                  size: 80,
-                                  color: Colors.grey[600],
-                                )),
+                          : Icon(
+                              Icons.camera_alt,
+                              size: 80,
+                              color: Colors.grey[600],
+                            ),
                     ),
                     Positioned(
                       bottom: 0,
@@ -135,7 +111,6 @@ class _EditInventoryPageState extends State<EditInventoryPage> {
                   child: Text('Upload Gambar'),
                 ),
                 TextFormField(
-                  initialValue: noasset,
                   decoration: InputDecoration(labelText: 'Nomor Asset'),
                   onSaved: (value) {
                     noasset = value!;
@@ -148,7 +123,6 @@ class _EditInventoryPageState extends State<EditInventoryPage> {
                   },
                 ),
                 TextFormField(
-                  initialValue: noserial,
                   decoration: InputDecoration(labelText: 'Nomor Serial'),
                   onSaved: (value) {
                     noserial = value!;
@@ -162,7 +136,7 @@ class _EditInventoryPageState extends State<EditInventoryPage> {
                 ),
                 DropdownButtonFormField<String>(
                   value: type,
-                  items: ['Device', 'Software'].map((String value) {
+                  items: ['Komputer', 'Laptop', 'Switch', 'Router'].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -176,31 +150,34 @@ class _EditInventoryPageState extends State<EditInventoryPage> {
                   decoration: InputDecoration(labelText: 'Type'),
                 ),
                 TextFormField(
-                  initialValue: details,
                   decoration: InputDecoration(labelText: 'Details'),
                   onSaved: (value) {
                     details = value!;
                   },
                 ),
                 ElevatedButton(
-                  child: Text('Update'),
+                  child: Text('Add'),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      if (_imageBytes != null) {
-                        await _uploadImage();
+                      await _uploadImage();
+                      if (imageUrl.isNotEmpty) {
+                        await addDeviceItem(
+                          DeviceItem(
+                            id: '',
+                            noasset: noasset,
+                            noserial: noserial,
+                            type: type,
+                            details: details,
+                            imageUrl: imageUrl,
+                          ),
+                        );
+                        Navigator.pop(context);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Upload Gambar Dahulu')),
+                        );
                       }
-                      await updateInventoryItem(
-                        InventoryItem(
-                          id: widget.item.id,
-                          noasset: noasset,
-                          noserial: noserial,
-                          type: type,
-                          details: details,
-                          imageUrl: imageUrl,
-                        ),
-                      );
-                      Navigator.pop(context);
                     }
                   },
                 ),

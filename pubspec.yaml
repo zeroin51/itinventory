@@ -40,8 +40,9 @@ dependencies:
   firebase_storage: ^12.3.3
   permission_handler: ^11.3.1
   image_picker: ^1.1.2
-  excel: ^4.0.6
+  excel: 2.0.0-null-safety-3
   path_provider: ^2.1.4
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:

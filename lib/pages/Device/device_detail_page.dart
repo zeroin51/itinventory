@@ -1,25 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '/models/inventory_item_model.dart';
-import 'edit_inventory_page.dart';
+import '/models/device_item_model.dart';
+import 'edit_device_page.dart';
 
-class InventoryDetailPage extends StatelessWidget {
-  final InventoryItem item;
+class DeviceDetailPage extends StatelessWidget {
+  final DeviceItem item;
 
-  InventoryDetailPage({required this.item});
+  DeviceDetailPage({required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail Inventory'),
+        title: Text('Detail Device'),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => EditInventoryPage(item: item),
+                  builder: (context) => EditDevicePage(item: item),
                 ),
               );
             },
@@ -107,7 +107,7 @@ class InventoryDetailPage extends StatelessWidget {
 
   Future<String> _getImageUrlFromFirestore(String itemId) async {
     // Query Firestore to get the document with the imageUrl
-    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('inventory').doc(itemId).get();
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('device').doc(itemId).get();
 
     if (docSnapshot.exists && docSnapshot.data() != null) {
       Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
@@ -155,7 +155,7 @@ class InventoryDetailPage extends StatelessWidget {
   }
 
   void _deleteItem(BuildContext context) {
-    FirebaseFirestore.instance.collection('inventory').doc(item.id).delete().then((_) {
+    FirebaseFirestore.instance.collection('device').doc(item.id).delete().then((_) {
       Navigator.of(context).pop(); // Pop once to go back to the list
     });
   }
