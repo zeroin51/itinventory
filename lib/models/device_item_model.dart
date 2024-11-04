@@ -3,10 +3,18 @@ class DeviceItem {
   String noasset;
   String noserial;
   String type; 
-  String details;
+  String assetdesc;
+  String costcenter;
+  String companycode;
+  String picname;
+  String loccode;
+  String locdesc;
+  String kondisi;
+  String label;
+  String note;
   String imageUrl;
 
-  DeviceItem({required this.id, required this.noasset, required this.noserial, required this.type, required this.details, required this.imageUrl});
+  DeviceItem({required this.id, required this.noasset, required this.noserial, required this.type, required this.assetdesc, required this.costcenter, required this.companycode, required this.picname, required this.loccode, required this.locdesc, required this.kondisi, required this.label, required this.note, required this.imageUrl});
 
   get imagePath => null;
 
@@ -16,7 +24,15 @@ class DeviceItem {
       'noasset': noasset,
       'noserial': noserial,
       'type': type,
-      'details': details,
+      'assetdesc': assetdesc,
+      'costcenter': costcenter,
+      'companycode': companycode,
+      'picname': picname,
+      'loccode': loccode,
+      'locdesc': locdesc,
+      'kondisi': kondisi,
+      'label': label,
+      'note': note,
       'imageUrl': imageUrl,
     };
   }
@@ -27,7 +43,15 @@ class DeviceItem {
       noasset: map['noasset'],
       noserial: map['noserial'],
       type: map['type'],
-      details: map['details'],
+      assetdesc: map['assetdesc'],
+      costcenter: map['costcenter'],
+      companycode: map['companycode'],
+      picname: map['picname'],
+      loccode: map['loccode'],
+      locdesc: map['locdesc'],
+      kondisi: map['kondisi'],
+      label: map['label'],
+      note: map['note'],
       imageUrl: map['imageUrl'],
     );
   }

@@ -27,7 +27,7 @@ class DeviceDetailPage extends StatelessWidget {
         ],
       ),
       body: FutureBuilder<String>(
-        future: _getImageUrlFromFirestore(item.id), // Fetching imageUrl from Firestore
+        future: _getImageUrlFromFirestore(item.id),
         builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
@@ -48,7 +48,6 @@ class DeviceDetailPage extends StatelessWidget {
                       height: 300,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        // Fallback to an online placeholder if the Firebase image fails
                         return Image.network(
                           'https://via.placeholder.com/300',
                           width: double.infinity,
@@ -74,7 +73,47 @@ class DeviceDetailPage extends StatelessWidget {
                     ),
                     SizedBox(height: 8.0),
                     Text(
-                      'Detail: ${item.details}',
+                      'Asset Description: ${item.assetdesc}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Cost Center: ${item.costcenter}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Company Code: ${item.companycode}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'PIC Name: ${item.picname}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Location Code: ${item.loccode}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Location Description: ${item.locdesc}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Kondisi: ${item.kondisi}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Label: ${item.label}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8.0),
+                    Text(
+                      'Note: ${item.note}',
                       style: TextStyle(fontSize: 18),
                     ),
                   ],
@@ -106,20 +145,17 @@ class DeviceDetailPage extends StatelessWidget {
   }
 
   Future<String> _getImageUrlFromFirestore(String itemId) async {
-    // Query Firestore to get the document with the imageUrl
     DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('device').doc(itemId).get();
 
     if (docSnapshot.exists && docSnapshot.data() != null) {
       Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
 
-      // Check if imageUrl exists in Firestore
       if (data.containsKey('imageUrl') && data['imageUrl'].toString().isNotEmpty) {
         return data['imageUrl'];
       }
     }
 
-    // Fallback to a placeholder image if no imageUrl is found
-    return 'https://via.placeholder.com/300'; // Online placeholder
+    return 'https://via.placeholder.com/300';
   }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
@@ -156,7 +192,7 @@ class DeviceDetailPage extends StatelessWidget {
 
   void _deleteItem(BuildContext context) {
     FirebaseFirestore.instance.collection('device').doc(item.id).delete().then((_) {
-      Navigator.of(context).pop(); // Pop once to go back to the list
+      Navigator.of(context).pop();
     });
   }
 }

@@ -1,10 +1,14 @@
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:itinventory/pages/crop_image.dart';
 import '/models/software_item_model.dart';
 import '/services/software_service.dart';
-import 'package:intl/intl.dart'; // For formatting date strings
+import 'package:intl/intl.dart';
+import 'package:crop_image/crop_image.dart';
 
 class EditSoftwarePage extends StatefulWidget {
   final SoftwareItem item;
@@ -17,20 +21,15 @@ class EditSoftwarePage extends StatefulWidget {
 
 class _EditSoftwarePageState extends State<EditSoftwarePage> {
   final _formKey = GlobalKey<FormState>();
-  late String noasset;
-  late String noserial;
-  late String type;
-  late String details;
-  late String imageUrl;
-  DateTime? expdate; // New field for expiration date
-  final DateFormat dateFormat = DateFormat('yyyy-MM-dd'); // For formatting date strings
+  late String noasset, noserial, type, details, imageUrl;
+  late String assetdesc, costcenter, companycode, picname, loccode, locdesc, kondisi, label, note;
+  DateTime? expdate;
+  final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
-  final firebase_storage.FirebaseStorage storage =
-      firebase_storage.FirebaseStorage.instance;
-  final firebase_storage.Reference _storageRef =
-      firebase_storage.FirebaseStorage.instance.ref('inventory_images');
-
+  final firebase_storage.FirebaseStorage storage = firebase_storage.FirebaseStorage.instance;
+  final firebase_storage.Reference _storageRef = firebase_storage.FirebaseStorage.instance.ref('images');
   Uint8List? _imageBytes;
+  final CropController cropController = CropController(aspectRatio: 1.0);
 
   @override
   void initState() {
@@ -38,33 +37,68 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
     noasset = widget.item.noasset;
     noserial = widget.item.noserial;
     type = widget.item.type;
-    details = widget.item.details;
     imageUrl = widget.item.imageUrl;
     // ignore: unnecessary_null_comparison
-    expdate = widget.item.expdate != null
-        ? DateFormat('yyyy-MM-dd').parse(widget.item.expdate)
-        : null; // Initialize the expiration date
+    expdate = widget.item.expdate != null ? dateFormat.parse(widget.item.expdate) : null;
+    assetdesc = widget.item.assetdesc;
+    costcenter = widget.item.costcenter;
+    companycode = widget.item.companycode;
+    picname = widget.item.picname;
+    loccode = widget.item.loccode;
+    locdesc = widget.item.locdesc;
+    kondisi = widget.item.kondisi;
+    label = widget.item.label;
+    note = widget.item.note;
+  }
+  // Fungsi untuk mengambil data dropdown dari Firestore
+  Future<List<String>> _getSoftwaretype() async {
+    final snapshot = await FirebaseFirestore.instance.collection('softwaretype').get();
+    return snapshot.docs.map((doc) => doc['softwaretype'] as String).toList();
+  }
+
+  Future<List<String>> _getCompanyCodes() async {
+    final snapshot = await FirebaseFirestore.instance.collection('companycodes').get();
+    return snapshot.docs.map((doc) => doc['comcode'] as String).toList();
+  }
+
+  Future<List<String>> _getCostCenters() async {
+    final costCentersSnapshot = await FirebaseFirestore.instance.collection('costcenters').get();
+    return costCentersSnapshot.docs.map((doc) {
+      final data = doc.data();
+      final kodeCC = data['kodeCC'] ?? '';
+      final detail = data['detail'] ?? '';
+      return '$kodeCC-$detail';
+    }).toList();
+  }
+
+  Future<List<String>> _getLocCodes() async {
+    final snapshot = await FirebaseFirestore.instance.collection('locationcodes').get();
+    return snapshot.docs.map((doc) => doc['loccode'] as String).toList();
+  }
+
+  Future<Uint8List?> _compressImage(Uint8List imageBytes) async {
+    try {
+      final List<int>? compressedBytes = await FlutterImageCompress.compressWithList(
+        imageBytes,
+        format: CompressFormat.jpeg,
+        quality: 70,
+      );
+      return compressedBytes != null ? Uint8List.fromList(compressedBytes) : null;
+    } catch (e) {
+      print('Error compressing image: $e');
+      return null;
+    }
   }
 
   Future<void> _uploadImage() async {
-    try {
-      if (_imageBytes != null) {
-        final DateTime now = DateTime.now();
-        final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
-        final String fileName = '${noasset}_$formattedDate'; // Gabungan noasset dan waktu sekarang
-        
-        final imageRef = _storageRef.child('$fileName.png');
-        final uploadTask = imageRef.putData(_imageBytes!);
+    if (_imageBytes != null && noasset.isNotEmpty) {
+      final DateTime now = DateTime.now();
+      final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
+      final String fileName = '${noasset}_$formattedDate';
 
-        await uploadTask;
-        imageUrl = await imageRef.getDownloadURL();
-
-        setState(() {
-          imageUrl = imageUrl;
-        });
-      }
-    } catch (error) {
-      print('Error uploading image: $error');
+      final imageRef = _storageRef.child('$fileName.png');
+      await imageRef.putData(_imageBytes!);
+      imageUrl = await imageRef.getDownloadURL();
     }
   }
 
@@ -72,9 +106,21 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final Uint8List imageBytes = await pickedFile.readAsBytes();
-      setState(() {
-        _imageBytes = imageBytes;
-      });
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CropImagePage(
+            imageBytes: imageBytes,
+            cropController: cropController,
+            onImageCropped: (croppedBytes) async {
+              final Uint8List? compressedImage = await _compressImage(croppedBytes);
+              setState(() {
+                _imageBytes = compressedImage ?? croppedBytes;
+              });
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -154,90 +200,141 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
                   onPressed: _pickImage,
                   child: Text('Upload Gambar'),
                 ),
+
                 TextFormField(
                   initialValue: noasset,
                   decoration: InputDecoration(labelText: 'Nomor Asset'),
-                  onSaved: (value) {
-                    noasset = value!;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan Nomor Asset';
-                    }
-                    return null;
-                  },
+                  onSaved: (value) => noasset = value!,
+                  validator: (value) => value == null || value.isEmpty ? 'Masukkan Nomor Asset' : null,
                 ),
+
                 TextFormField(
                   initialValue: noserial,
                   decoration: InputDecoration(labelText: 'Nomor Serial'),
-                  onSaved: (value) {
-                    noserial = value!;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masukkan Nomor Serial';
+                  onSaved: (value) => noserial = value!,
+                  validator: (value) => value == null || value.isEmpty ? 'Masukkan Nomor Serial' : null,
+                ),
+
+                FutureBuilder<List<String>>(
+                  future: _getSoftwaretype(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return CircularProgressIndicator();
                     }
-                    return null;
+                    return DropdownButtonFormField<String>(
+                      value: snapshot.data!.contains(type) ? type : null,
+                      onChanged: (value) => setState(() => type = value!),
+                      decoration: InputDecoration(labelText: 'Software Type'),
+                      items: snapshot.data!.map((center) => DropdownMenuItem(value: center, child: Text(center))).toList(),
+                    );
                   },
+                ),
+
+                FutureBuilder<List<String>>(
+                  future: _getCompanyCodes(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return CircularProgressIndicator();
+                    }
+                    return DropdownButtonFormField<String>(
+                      value: companycode,
+                      onChanged: (value) => setState(() => companycode = value!),
+                      decoration: InputDecoration(labelText: 'Company Code'),
+                      items: snapshot.data!.map((code) => DropdownMenuItem(value: code, child: Text(code))).toList(),
+                    );
+                  },
+                ),
+
+                FutureBuilder<List<String>>(
+                  future: _getCostCenters(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return CircularProgressIndicator();
+                    }
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+                    return DropdownButtonFormField<String>(
+                      value: snapshot.data!.contains(costcenter) ? costcenter : null,
+                      onChanged: (value) => setState(() => costcenter = value!),
+                      decoration: InputDecoration(labelText: 'Cost Center'),
+                      items: snapshot.data!
+                          .map((center) => DropdownMenuItem(value: center, child: Text(center)))
+                          .toList(),
+                    );
+                  },
+                ),
+
+                FutureBuilder<List<String>>(
+                  future: _getLocCodes(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return CircularProgressIndicator();
+                    }
+                    return DropdownButtonFormField<String>(
+                      value: loccode,
+                      onChanged: (value) => setState(() => loccode = value!),
+                      decoration: InputDecoration(labelText: 'Location Code'),
+                      items: snapshot.data!.map((loc) => DropdownMenuItem(value: loc, child: Text(loc))).toList(),
+                    );
+                  },
+                ),
+
+                TextFormField(
+                  initialValue: locdesc,
+                  decoration: InputDecoration(labelText: 'Location Description'),
+                  onSaved: (value) => locdesc = value!,
+                ),
+
+                TextFormField(
+                  initialValue: picname,
+                  decoration: InputDecoration(labelText: 'PIC Name'),
+                  onSaved: (value) => picname = value!,
                 ),
                 DropdownButtonFormField<String>(
-                  value: type,
-                  items: ['Office', 'Adobe'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      type = newValue!;
-                    });
-                  },
-                  decoration: InputDecoration(labelText: 'Type'),
+                  decoration: InputDecoration(labelText: 'Kondisi'),
+                  value: kondisi,
+                  items: ['Berfungsi', 'Tidak Berfungsi'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+                  onChanged: (value) => setState(() => kondisi = value!),
+                ),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Label'),
+                  value: label,
+                  items: ['Ada', 'Tidak Ada'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+                  onChanged: (value) => setState(() => label = value!),
                 ),
                 TextFormField(
-                  initialValue: details,
-                  decoration: InputDecoration(labelText: 'Details'),
-                  onSaved: (value) {
-                    details = value!;
-                  },
-                ),
-                TextFormField(
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: 'Tanggal Expire',
-                    hintText: expdate != null ? dateFormat.format(expdate!) : 'Pilih Tanggal',
-                  ),
-                  onTap: () => _selectExpDate(context),
-                  validator: (value) {
-                    if (expdate == null) {
-                      return 'Pilih tanggal expire';
-                    }
-                    return null;
-                  },
+                  initialValue: note,
+                  decoration: InputDecoration(labelText: 'Note'),
+                  onSaved: (value) => note = value!,
                 ),
                 ElevatedButton(
-                  child: Text('Update'),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      if (_imageBytes != null) {
-                        await _uploadImage();
-                      }
-                      await updateSoftwareItem(
-                        SoftwareItem(
-                          id: widget.item.id,
-                          noasset: noasset,
-                          noserial: noserial,
-                          type: type,
-                          expdate: dateFormat.format(expdate!), // Save expdate as string
-                          details: details,
-                          imageUrl: imageUrl,
-                        ),
+                      await _uploadImage();
+                      final updatedSoftware = SoftwareItem(
+                        id: widget.item.id,
+                        noasset: noasset,
+                        noserial: noserial,
+                        type: type,
+                        expdate: dateFormat.format(expdate!),
+                        assetdesc: assetdesc,
+                        companycode: companycode,
+                        costcenter: costcenter,
+                        picname: picname,
+                        loccode: loccode,
+                        locdesc: locdesc,
+                        kondisi: kondisi,
+                        label: label,
+                        note: note,
+                        imageUrl: imageUrl,
                       );
+                      await updateSoftwareItem(updatedSoftware);
                       Navigator.pop(context);
                     }
                   },
+                  child: Text('Save Changes'),
                 ),
               ],
             ),

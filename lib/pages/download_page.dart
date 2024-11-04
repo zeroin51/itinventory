@@ -94,7 +94,7 @@ class _DownloadPageState extends State<DownloadPage> {
 
   void exportDeviceData() async {
     final deviceItems = await fetchDeviceItems();
-    final headers = ['ID', 'No Asset', 'No Serial', 'Type', 'Details', 'Image URL'];
+    final headers = ['ID', 'No Asset', 'No Serial', 'Type', 'Assset Description', 'Cost Center', 'Company Code', 'PIC Name', 'Location Code', 'Location Description', 'Kondisi', 'Label', 'Note', 'Image URL'];
     await exportToExcel(
       deviceItems,
       'DeviceData.xlsx',
@@ -104,15 +104,23 @@ class _DownloadPageState extends State<DownloadPage> {
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row + 1)).value = item.noasset;
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row + 1)).value = item.noserial;
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row + 1)).value = item.type;
-        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row + 1)).value = item.details;
-        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row + 1)).value = item.imageUrl;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row + 1)).value = item.assetdesc;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row + 1)).value = item.costcenter;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row + 1)).value = item.companycode;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row + 1)).value = item.picname;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row + 1)).value = item.loccode;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row + 1)).value = item.locdesc;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row + 1)).value = item.kondisi;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row + 1)).value = item.label;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row + 1)).value = item.note;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row + 1)).value = item.imageUrl;
       },
     );
   }
 
   void exportSoftwareData() async {
     final softwareItems = await fetchSoftwareItems();
-    final headers = ['ID', 'No Asset', 'No Serial', 'Type', 'Exp Date', 'Details', 'Image URL'];
+    final headers = ['ID', 'No Asset', 'No Serial', 'Type', 'Exp Date', 'Assset Description', 'Cost Center', 'Company Code', 'PIC Name', 'Location Code', 'Location Description', 'Kondisi', 'Label', 'Note', 'Image URL'];
     await exportToExcel(
       softwareItems,
       'SoftwareData.xlsx',
@@ -123,8 +131,16 @@ class _DownloadPageState extends State<DownloadPage> {
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row + 1)).value = item.noserial;
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row + 1)).value = item.type;
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row + 1)).value = item.expdate;
-        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row + 1)).value = item.details;
-        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row + 1)).value = item.imageUrl;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row + 1)).value = item.assetdesc;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row + 1)).value = item.costcenter;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row + 1)).value = item.companycode;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row + 1)).value = item.picname;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row + 1)).value = item.loccode;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row + 1)).value = item.locdesc;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row + 1)).value = item.kondisi;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row + 1)).value = item.label;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row + 1)).value = item.note;
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: row + 1)).value = item.imageUrl;
       },
     );
   }

@@ -43,6 +43,8 @@ dependencies:
   excel: 2.0.0-null-safety-3
   path_provider: ^2.1.4
   intl: ^0.19.0
+  flutter_image_compress: ^2.3.0
+  crop_image: ^1.0.13
 
 dev_dependencies:
   flutter_test:

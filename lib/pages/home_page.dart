@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'Device/device_page.dart';
-import 'Software/software_page.dart';
+import 'package:itinventory/pages/home_asset_page.dart';
+import 'package:itinventory/pages/home_datareferensi_page.dart';
 import 'download_page.dart'; // Import halaman DownloadPage
 
 class HomePage extends StatelessWidget {
@@ -12,36 +12,39 @@ class HomePage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: 2, // Jumlah item per baris
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Tombol ke InventoryPage
+            // Tombol ke Home Asset Page
             _buildSquareButton(
               context,
-              icon: Icons.computer, // Ikon Device
-              label: 'Device',
+              icon: Icons.web_asset, // Ikon Asset
+              label: 'Asset',
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => DevicePage()),
+                  MaterialPageRoute(builder: (context) => HomeAssetPage()),
                 );
               },
             ),
 
-            // Tombol ke SoftwarePage
+            SizedBox(height: 20.0), // Jarak antar tombol
+
+            // Tombol ke Data Referensi
             _buildSquareButton(
               context,
-              icon: Icons.adobe, // Ikon Software
-              label: 'Software',
+              icon: Icons.data_array, // Ikon DataReferensi
+              label: 'Data Referensi',
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SoftwarePage()),
+                  MaterialPageRoute(builder: (context) => HomeDatareferensiPage()),
                 );
               },
             ),
+
+            SizedBox(height: 20.0), // Jarak antar tombol
 
             // Tombol ke DownloadPage
             _buildSquareButton(
@@ -69,14 +72,14 @@ class HomePage extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0), // Persegi dengan sudut melengkung
         ),
-        padding: EdgeInsets.all(16.0), // Jarak dari tepi tombol
+        padding: EdgeInsets.symmetric(vertical: 55.0), // Jarak atas-bawah diperbesar
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 48.0), // Ukuran ikon
+          Icon(icon, size: 60.0), // Ukuran ikon diperbesar
           SizedBox(height: 10.0), // Jarak antara ikon dan teks
-          Text(label, style: TextStyle(fontSize: 18.0)), // Teks di bawah ikon
+          Text(label, style: TextStyle(fontSize: 20.0)), // Teks diperbesar
         ],
       ),
     );

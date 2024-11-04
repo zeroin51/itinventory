@@ -1,9 +1,8 @@
 import 'package:itinventory/pages/device/device_detail_page.dart';
 import 'package:flutter/material.dart';
-import '/services/device_service.dart'; // Import service CRUD
-import '/models/device_item_model.dart'; // Import model DeviceItem
-import 'add_device_page.dart'; // Halaman untuk tambah data
-
+import '/services/device_service.dart';
+import '/models/device_item_model.dart';
+import 'add_device_page.dart';
 
 class DevicePage extends StatefulWidget {
   @override
@@ -14,11 +13,13 @@ class _DevicePageState extends State<DevicePage> {
   TextEditingController _searchController = TextEditingController();
   List<DeviceItem> _allItems = [];
   List<DeviceItem> _filteredItems = [];
+  late Stream<List<DeviceItem>> _deviceStream;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_filterItems);
+    _deviceStream = getDeviceItems();
   }
 
   @override
@@ -37,17 +38,30 @@ class _DevicePageState extends State<DevicePage> {
     });
   }
 
+  void _refreshData() {
+    setState(() {
+      _deviceStream = getDeviceItems();
+      _filteredItems.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('IT Inventory'),
+        title: Text('IT Device'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _refreshData,
+          ),
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
-              // Aksi untuk menambahkan item baru
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AddDevicePage()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddDevicePage())
+              );
             },
           ),
         ],
@@ -59,8 +73,8 @@ class _DevicePageState extends State<DevicePage> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search...',
-                filled: true, // Mengaktifkan warna background
-                fillColor: Colors.white, // Warna background putih
+                filled: true,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -71,7 +85,7 @@ class _DevicePageState extends State<DevicePage> {
         ),
       ),
       body: StreamBuilder<List<DeviceItem>>(
-        stream: getDeviceItems(),
+        stream: _deviceStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -93,7 +107,6 @@ class _DevicePageState extends State<DevicePage> {
                 title: Text(item.noasset),
                 subtitle: Text(item.type),
                 onTap: () {
-                  // Aksi untuk edit item
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => DeviceDetailPage(item: item))

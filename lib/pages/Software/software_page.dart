@@ -4,7 +4,6 @@ import '/services/software_service.dart'; // Import service CRUD
 import '/models/software_item_model.dart'; // Import model InventoryItem
 import 'add_software_page.dart'; // Halaman untuk tambah data
 
-
 class SoftwarePage extends StatefulWidget {
   @override
   _SoftwarePageState createState() => _SoftwarePageState();
@@ -14,11 +13,13 @@ class _SoftwarePageState extends State<SoftwarePage> {
   TextEditingController _searchController = TextEditingController();
   List<SoftwareItem> _allItems = [];
   List<SoftwareItem> _filteredItems = [];
+  late Stream<List<SoftwareItem>> _softwareStream;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_filterItems);
+    _softwareStream = getSoftwareItems(); // Inisialisasi stream dari Firebase
   }
 
   @override
@@ -37,17 +38,30 @@ class _SoftwarePageState extends State<SoftwarePage> {
     });
   }
 
+  void _refreshData() {
+    setState(() {
+      _softwareStream = getSoftwareItems(); // Memuat ulang stream dari Firebase
+      _filteredItems.clear(); // Reset hasil filter
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('IT Inventory'),
+        title: Text('IT Software'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _refreshData,
+          ),
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
-              // Aksi untuk menambahkan item baru
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AddSoftwarePage()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddSoftwarePage())
+              );
             },
           ),
         ],
@@ -59,8 +73,8 @@ class _SoftwarePageState extends State<SoftwarePage> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search...',
-                filled: true, // Mengaktifkan warna background
-                fillColor: Colors.white, // Warna background putih
+                filled: true,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -71,7 +85,7 @@ class _SoftwarePageState extends State<SoftwarePage> {
         ),
       ),
       body: StreamBuilder<List<SoftwareItem>>(
-        stream: getSoftwareItems(),
+        stream: _softwareStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -93,7 +107,6 @@ class _SoftwarePageState extends State<SoftwarePage> {
                 title: Text(item.noasset),
                 subtitle: Text(item.type),
                 onTap: () {
-                  // Aksi untuk edit item
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SoftwareDetailPage(item: item))
