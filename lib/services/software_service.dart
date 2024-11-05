@@ -21,25 +21,25 @@ Future<void> updateSoftwareItem(SoftwareItem item) async {
   await software.doc(item.id).update(item.toMap());
 }
 
-// Fungsi untuk menghapus SoftwareItem dan gambar terkait di Firebase Storage
-Future<void> deleteSoftwareItem(String id, String imageUrl) async {
-  CollectionReference software = FirebaseFirestore.instance.collection('software');
-  
+Future<void> deleteSoftwareItem(String id, String imagename) async {
   try {
-    // Hapus dokumen dari Firestore
-    await software.doc(id).delete();
-    print('Document with ID $id successfully deleted from Firestore.');
-
-    // Jika imageUrl tidak kosong, hapus gambar dari Firebase Storage
-    if (imageUrl.isNotEmpty) {
-      Uri uri = Uri.parse(imageUrl);
-      String filePath = uri.path.substring(1); // Hapus leading slash dari path
-
-      firebase_storage.Reference imageRef = firebase_storage.FirebaseStorage.instance.ref(filePath);
+    if (imagename.isNotEmpty) { // Hanya hapus jika imagename tidak kosong
+      final firebase_storage.Reference imageRef =
+          firebase_storage.FirebaseStorage.instance.ref('images/$imagename');
       await imageRef.delete();
       print('Image successfully deleted from Firebase Storage.');
     }
   } catch (e) {
-    print('Error occurred while deleting: $e');
+    print('Error deleting image from Firebase Storage: $e');
+    throw ('Gagal menghapus gambar: $e');
+  }
+
+  try {
+    CollectionReference software = FirebaseFirestore.instance.collection('software');
+    await software.doc(id).delete();
+    print('Software item successfully deleted from Firestore.');
+  } catch (e) {
+    print('Error deleting document from Firestore: $e');
+    throw ('Gagal menghapus item dari Firestore: $e');
   }
 }

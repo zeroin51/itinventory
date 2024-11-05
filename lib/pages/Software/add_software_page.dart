@@ -29,6 +29,8 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
   String kondisi = 'Berfungsi';
   String label = 'Ada';
   String note = '';
+  String imageUrl = '';
+  String imagename = '';
   DateTime? expdate; // For storing the selected expiration date
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
@@ -38,7 +40,6 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
       firebase_storage.FirebaseStorage.instance.ref('images');
 
   Uint8List? _imageBytes; // For storing the image bytes
-  String imageUrl = ''; // URL of the uploaded image
 
   // Tambahkan controller untuk cropping
   final CropController cropController = CropController(
@@ -90,11 +91,10 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
       if (_imageBytes != null && noasset.isNotEmpty) {
         final DateTime now = DateTime.now();
         final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
-        final String fileName = '${noasset}_$formattedDate'; 
+        imagename = '${noasset}_$formattedDate.png'; // Set nama file gambar
+        final imageRef = _storageRef.child(imagename);
 
-        final imageRef = _storageRef.child('$fileName.png');
         final uploadTask = imageRef.putData(_imageBytes!);
-
         await uploadTask;
         imageUrl = await imageRef.getDownloadURL();
 
@@ -120,6 +120,7 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
       });
     }
   }
+
   // Fungsi untuk mengambil data dropdown dari Firestore
   Future<List<String>> _getSoftwaretype() async {
     final snapshot = await FirebaseFirestore.instance.collection('softwaretype').get();
@@ -222,6 +223,18 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
                     return null;
                   },
                 ),
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Asset Description'),
+                  onSaved: (value) {
+                    assetdesc = value!;
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Masukkan Asset Description';
+                    }
+                    return null;
+                  },
+                ),
                 //Dropdown Device Type dari Firestore
                 FutureBuilder<List<String>>(
                   future: _getSoftwaretype(),
@@ -233,7 +246,7 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
                       return Text('Error: ${snapshot.error}');
                     }
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Text('No DevSoftwareice Type available');
+                      return Text('No Software Type available');
                     }
                     return DropdownButtonFormField<String>(
                       value: snapshot.data!.contains(type) ? type : null,
@@ -350,7 +363,7 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
                             noasset: noasset,
                             noserial: noserial,
                             type: type,
-                            expdate: dateFormat.format(expdate!), // Format date as string
+                            expdate: dateFormat.format(expdate!), 
                             assetdesc: assetdesc,
                             companycode: companycode,
                             costcenter: costcenter,
@@ -361,6 +374,7 @@ class _AddSoftwarePageState extends State<AddSoftwarePage> {
                             label: label,
                             note: note,
                             imageUrl: imageUrl,
+                            imagename: imagename,
                           ),
                         );
                         Navigator.pop(context);

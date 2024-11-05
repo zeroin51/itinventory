@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:itinventory/services/device_service.dart';
 import '/models/device_item_model.dart';
 import 'edit_device_page.dart';
 
@@ -168,7 +169,8 @@ class DeviceDetailPage extends StatelessWidget {
           actions: <Widget>[
             ElevatedButton(
               onPressed: () {
-                _deleteItem(context);
+                Navigator.of(context).pop(); // Tutup dialog konfirmasi
+                _deleteItem(context); // Lanjutkan penghapusan item
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -190,9 +192,17 @@ class DeviceDetailPage extends StatelessWidget {
     );
   }
 
-  void _deleteItem(BuildContext context) {
-    FirebaseFirestore.instance.collection('device').doc(item.id).delete().then((_) {
-      Navigator.of(context).pop();
-    });
+  // Fungsi untuk menghapus item dengan memanggil deleteDeviceItem dari device_service.dart
+ Future<void> _deleteItem(BuildContext context) async {
+    try {
+      await deleteDeviceItem(item.id, item.imagename);
+      Navigator.of(context).pop(); // Kembali ke halaman sebelumnya setelah berhasil menghapus
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus item: $e'),
+        ),
+      );
+    }
   }
 }

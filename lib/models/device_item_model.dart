@@ -13,8 +13,9 @@ class DeviceItem {
   String label;
   String note;
   String imageUrl;
+  String imagename;
 
-  DeviceItem({required this.id, required this.noasset, required this.noserial, required this.type, required this.assetdesc, required this.costcenter, required this.companycode, required this.picname, required this.loccode, required this.locdesc, required this.kondisi, required this.label, required this.note, required this.imageUrl});
+  DeviceItem({required this.id, required this.noasset, required this.noserial, required this.type, required this.assetdesc, required this.costcenter, required this.companycode, required this.picname, required this.loccode, required this.locdesc, required this.kondisi, required this.label, required this.note, required this.imageUrl, required this.imagename});
 
   get imagePath => null;
 
@@ -34,6 +35,7 @@ class DeviceItem {
       'label': label,
       'note': note,
       'imageUrl': imageUrl,
+      'imagename': imagename,
     };
   }
 
@@ -53,6 +55,7 @@ class DeviceItem {
       label: map['label'],
       note: map['note'],
       imageUrl: map['imageUrl'],
+      imagename: map['imagename']
     );
   }
 }

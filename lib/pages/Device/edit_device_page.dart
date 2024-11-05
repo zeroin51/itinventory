@@ -20,7 +20,7 @@ class EditDevicePage extends StatefulWidget {
 
 class _EditDevicePageState extends State<EditDevicePage> {
   final _formKey = GlobalKey<FormState>();
-  late String noasset, noserial, type, assetdesc, costcenter, companycode, picname, loccode, locdesc, kondisi, label, note, imageUrl;
+  late String noasset, noserial, type, assetdesc, costcenter, companycode, picname, loccode, locdesc, kondisi, label, note, imageUrl, imagename;
   final firebase_storage.FirebaseStorage storage = firebase_storage.FirebaseStorage.instance;
   final firebase_storage.Reference _storageRef = firebase_storage.FirebaseStorage.instance.ref('images');
   Uint8List? _imageBytes;
@@ -42,6 +42,7 @@ class _EditDevicePageState extends State<EditDevicePage> {
     label = widget.item.label;
     note = widget.item.note;
     imageUrl = widget.item.imageUrl;
+    imagename = widget.item.imagename;
   }
 
   Future<List<String>> _getDevicetype() async {
@@ -105,18 +106,32 @@ class _EditDevicePageState extends State<EditDevicePage> {
     }
   }
 
+  // Fungsi upload gambar ke Firebase Storage dan menyimpan imagename
+  // Fungsi upload gambar baru dan menghapus gambar lama
   Future<void> _uploadImage() async {
     if (_imageBytes != null && noasset.isNotEmpty) {
+      // Hapus gambar lama jika imagename lama ada
+      if (imagename.isNotEmpty) {
+        final oldImageRef = _storageRef.child(imagename);
+        try {
+          await oldImageRef.delete();
+          print('Old image successfully deleted from Firebase Storage.');
+        } catch (e) {
+          print('Error deleting old image: $e');
+        }
+      }
+
+      // Upload gambar baru
       final DateTime now = DateTime.now();
       final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
-      final String fileName = '${noasset}_$formattedDate';
+      imagename = '${noasset}_$formattedDate.png';
 
-      final imageRef = _storageRef.child('$fileName.png');
+      final imageRef = _storageRef.child(imagename);
       await imageRef.putData(_imageBytes!);
       imageUrl = await imageRef.getDownloadURL();
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,6 +207,13 @@ class _EditDevicePageState extends State<EditDevicePage> {
                   decoration: InputDecoration(labelText: 'Nomor Serial'),
                   onSaved: (value) => noserial = value!,
                   validator: (value) => value == null || value.isEmpty ? 'Masukkan Nomor Serial' : null,
+                ),
+
+                TextFormField(
+                  initialValue: assetdesc,
+                  decoration: InputDecoration(labelText: 'Asset Description'),
+                  onSaved: (value) => assetdesc = value!,
+                  validator: (value) => value == null || value.isEmpty ? 'Masukkan Asset Description' : null,
                 ),
 
                 FutureBuilder<List<String>>(
@@ -311,6 +333,7 @@ class _EditDevicePageState extends State<EditDevicePage> {
                         label: label,
                         note: note,
                         imageUrl: imageUrl,
+                        imagename: imagename,
                       );
                       await updateDeviceItem(updatedDevice);
                       Navigator.pop(context);

@@ -21,7 +21,7 @@ class EditSoftwarePage extends StatefulWidget {
 
 class _EditSoftwarePageState extends State<EditSoftwarePage> {
   final _formKey = GlobalKey<FormState>();
-  late String noasset, noserial, type, details, imageUrl;
+  late String noasset, noserial, type, details, imageUrl, imagename;
   late String assetdesc, costcenter, companycode, picname, loccode, locdesc, kondisi, label, note;
   DateTime? expdate;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
@@ -49,6 +49,7 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
     kondisi = widget.item.kondisi;
     label = widget.item.label;
     note = widget.item.note;
+    imagename = widget.item.imagename;
   }
   // Fungsi untuk mengambil data dropdown dari Firestore
   Future<List<String>> _getSoftwaretype() async {
@@ -90,13 +91,27 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
     }
   }
 
+  // Fungsi upload gambar ke Firebase Storage dan menyimpan imagename
+  // Fungsi upload gambar baru dan menghapus gambar lama
   Future<void> _uploadImage() async {
     if (_imageBytes != null && noasset.isNotEmpty) {
+      // Hapus gambar lama jika imagename lama ada
+      if (imagename.isNotEmpty) {
+        final oldImageRef = _storageRef.child(imagename);
+        try {
+          await oldImageRef.delete();
+          print('Old image successfully deleted from Firebase Storage.');
+        } catch (e) {
+          print('Error deleting old image: $e');
+        }
+      }
+
+      // Upload gambar baru
       final DateTime now = DateTime.now();
       final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
-      final String fileName = '${noasset}_$formattedDate';
+      imagename = '${noasset}_$formattedDate.png';
 
-      final imageRef = _storageRef.child('$fileName.png');
+      final imageRef = _storageRef.child(imagename);
       await imageRef.putData(_imageBytes!);
       imageUrl = await imageRef.getDownloadURL();
     }
@@ -215,6 +230,13 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
                   validator: (value) => value == null || value.isEmpty ? 'Masukkan Nomor Serial' : null,
                 ),
 
+                TextFormField(
+                  initialValue: assetdesc,
+                  decoration: InputDecoration(labelText: 'Asset Description'),
+                  onSaved: (value) => assetdesc = value!,
+                  validator: (value) => value == null || value.isEmpty ? 'Masukkan Asset Description' : null,
+                ),
+
                 FutureBuilder<List<String>>(
                   future: _getSoftwaretype(),
                   builder: (context, snapshot) {
@@ -329,6 +351,7 @@ class _EditSoftwarePageState extends State<EditSoftwarePage> {
                         label: label,
                         note: note,
                         imageUrl: imageUrl,
+                        imagename: imagename,
                       );
                       await updateSoftwareItem(updatedSoftware);
                       Navigator.pop(context);

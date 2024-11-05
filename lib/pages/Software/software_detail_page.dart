@@ -73,13 +73,13 @@ class SoftwareDetailPage extends StatelessWidget {
                     style: TextStyle(fontSize: 18),
                   ),
                   SizedBox(height: 8.0),
-                    Text(
-                      'Asset Description: ${item.assetdesc}',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    SizedBox(height: 8.0),
-                    Text(
-                      'Cost Center: ${item.costcenter}',
+                  Text(
+                    'Asset Description: ${item.assetdesc}',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 8.0),
+                  Text(
+                    'Cost Center: ${item.costcenter}',
                       style: TextStyle(fontSize: 18),
                     ),
                     SizedBox(height: 8.0),
@@ -148,6 +148,20 @@ class SoftwareDetailPage extends StatelessWidget {
     );
   }
 
+  Future<String> _getImageUrlFromFirestore(String itemId) async {
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('software').doc(itemId).get();
+
+    if (docSnapshot.exists && docSnapshot.data() != null) {
+      Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+
+      if (data.containsKey('imageUrl') && data['imageUrl'].toString().isNotEmpty) {
+        return data['imageUrl'];
+      }
+    }
+
+    return 'https://via.placeholder.com/300';
+  }
+
   void _showDeleteConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -157,8 +171,9 @@ class SoftwareDetailPage extends StatelessWidget {
           content: Text('Apakah Anda yakin ingin menghapus item ini?'),
           actions: <Widget>[
             ElevatedButton(
-              onPressed: () async {
-                await _deleteItem(context);
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog konfirmasi
+                _deleteItem(context); // Lanjutkan penghapusan item
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
@@ -180,39 +195,17 @@ class SoftwareDetailPage extends StatelessWidget {
     );
   }
 
-  Future<void> _deleteItem(BuildContext context) async {
+  // Fungsi untuk menghapus item dengan memanggil deleteSoftware Item dari software_service.dart
+ Future<void> _deleteItem(BuildContext context) async {
     try {
-      // Ambil imageUrl dari Firestore
-      String imageUrl = await _getImageUrlFromFirestore(item.id);
-
-      // Panggil fungsi delete dari service
-      await deleteSoftwareItem(item.id, imageUrl);
-
-      // Kembali ke halaman sebelumnya
-      Navigator.of(context).pop(); // Tutup dialog konfirmasi
-      Navigator.of(context).pop(); // Kembali ke halaman sebelumnya
+      await deleteSoftwareItem(item.id, item.imagename);
+      Navigator.of(context).pop(); // Kembali ke halaman sebelumnya setelah berhasil menghapus
     } catch (e) {
-      print('Error deleting item: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menghapus item. Silakan coba lagi.')),
+        SnackBar(
+          content: Text('Gagal menghapus item: $e'),
+        ),
       );
     }
-  }
-
-  Future<String> _getImageUrlFromFirestore(String itemId) async {
-    // Query Firestore untuk mendapatkan dokumen dengan imageUrl
-    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance.collection('software').doc(itemId).get();
-
-    if (docSnapshot.exists && docSnapshot.data() != null) {
-      Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
-
-      // Check jika imageUrl ada di Firestore
-      if (data.containsKey('imageUrl') && data['imageUrl'].toString().isNotEmpty) {
-        return data['imageUrl'];
-      }
-    }
-
-    // Fallback ke placeholder image jika tidak ada imageUrl
-    return 'https://via.placeholder.com/300';
   }
 }

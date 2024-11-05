@@ -29,11 +29,13 @@ class _AddDevicePageState extends State<AddDevicePage> {
   String label = 'Ada';
   String note = '';
   String imageUrl = '';
+  String imagename = '';
+
+  Uint8List? _imageBytes;
+  final CropController cropController = CropController(aspectRatio: 1.0);
 
   final firebase_storage.FirebaseStorage storage = firebase_storage.FirebaseStorage.instance;
   final firebase_storage.Reference _storageRef = firebase_storage.FirebaseStorage.instance.ref('images');
-  Uint8List? _imageBytes;
-  final CropController cropController = CropController(aspectRatio: 1.0);
 
   // Fungsi untuk mengambil data dropdown dari Firestore
   Future<List<String>> _getDevicetype() async {
@@ -99,18 +101,43 @@ class _AddDevicePageState extends State<AddDevicePage> {
     }
   }
 
-  // Fungsi upload gambar ke Firebase Storage
+  // Fungsi upload gambar ke Firebase Storage dan menyimpan imagename
   Future<void> _uploadImage() async {
     if (_imageBytes != null && noasset.isNotEmpty) {
       final DateTime now = DateTime.now();
       final String formattedDate = '${now.year}${now.month}${now.day}_${now.hour}${now.minute}${now.second}';
-      final String fileName = '${noasset}_$formattedDate';
+      imagename = '${noasset}_$formattedDate.png';
 
-      final imageRef = _storageRef.child('$fileName.png');
+      final imageRef = _storageRef.child(imagename);
       await imageRef.putData(_imageBytes!);
       imageUrl = await imageRef.getDownloadURL();
     }
   }
+
+  // Fungsi menambah device
+  Future<void> _addDeviceItem() async {
+    await _uploadImage();
+    final deviceItem = DeviceItem(
+      id: '',
+      noasset: noasset,
+      noserial: noserial,
+      type: type,
+      assetdesc: assetdesc,
+      companycode: companycode,
+      costcenter: costcenter,
+      picname: picname,
+      loccode: loccode,
+      locdesc: locdesc,
+      kondisi: kondisi,
+      label: label,
+      note: note,
+      imageUrl: imageUrl,
+      imagename: imagename,
+    );
+    await addDeviceItem(deviceItem);
+  }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +193,7 @@ class _AddDevicePageState extends State<AddDevicePage> {
                   child: Text('Upload Gambar'),
                 ),
 
-                // Input Nomor Asset
+                // Input Form Field
                 TextFormField(
                   decoration: InputDecoration(labelText: 'Nomor Asset'),
                   onSaved: (value) => noasset = value!,
@@ -178,6 +205,13 @@ class _AddDevicePageState extends State<AddDevicePage> {
                   decoration: InputDecoration(labelText: 'Nomor Serial'),
                   onSaved: (value) => noserial = value!,
                   validator: (value) => value == null || value.isEmpty ? 'Masukkan Nomor Serial' : null,
+                ),
+
+                // Input Asset Description
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Asset Description'),
+                  onSaved: (value) => assetdesc = value!,
+                  validator: (value) => value == null || value.isEmpty ? 'Masukkan Asset Description' : null,
                 ),
 
                 //Dropdown Device Type dari Firestore
@@ -319,6 +353,7 @@ class _AddDevicePageState extends State<AddDevicePage> {
                         label: label,
                         note: note,
                         imageUrl: imageUrl,
+                        imagename: imagename,
                       );
                       await addDeviceItem(deviceItem);
                       Navigator.pop(context);
