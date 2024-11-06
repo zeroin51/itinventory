@@ -59,10 +59,11 @@ class _UserPageState extends State<UserPage> {
                               icon: Icon(Icons.edit),
                               onPressed: () => _editUser(user),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () => _deleteUser(user.id),
-                            ),
+                            if (user.username != 'admin') // Kondisi untuk menghilangkan tombol delete
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () => _deleteUser(user.id),
+                              ),
                           ],
                         ),
                       );

@@ -1,5 +1,5 @@
 import 'package:itinventory/firebase_options.dart';
-import 'package:itinventory/pages/home_page.dart';
+import 'package:itinventory/pages/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Inventory IT',
-      home: HomePage(), // Halaman utama aplikasi
+      home: LoginPage(), // Halaman utama aplikasi
     );
   }
 }

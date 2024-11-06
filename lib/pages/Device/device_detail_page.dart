@@ -196,6 +196,7 @@ class DeviceDetailPage extends StatelessWidget {
  Future<void> _deleteItem(BuildContext context) async {
     try {
       await deleteDeviceItem(item.id, item.imagename);
+      Navigator.of(context).pop();
       Navigator.of(context).pop(); // Kembali ke halaman sebelumnya setelah berhasil menghapus
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
